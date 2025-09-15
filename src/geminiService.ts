@@ -6,7 +6,9 @@ export async function generateDressUpImage(
   clothing: ImageData,
   prompt: string,
 ): Promise<string> {
-  const response = await fetch('/api/gemini-dress', {
+  const apiBaseFromStorage = typeof window !== 'undefined' ? localStorage.getItem('API_BASE') || '' : ''
+  const apiBase = apiBaseFromStorage || import.meta.env.VITE_API_BASE || ''
+  const response = await fetch(`${apiBase}/api/gemini-dress`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ character, clothing, prompt }),

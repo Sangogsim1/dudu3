@@ -167,6 +167,10 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>('ko');
+  const [apiBase, setApiBase] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('API_BASE') || ''
+  });
 
   const t = useCallback((key: TranslationKey) => {
     return (translations as any)[language][key] || (translations as any)['en'][key];
@@ -175,6 +179,12 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('API_BASE', apiBase || '');
+    }
+  }, [apiBase]);
 
   const handleCharacterUpload = (base64: string, mimeType: string) => {
     setCharacterImage({ base64, mimeType });
@@ -251,6 +261,16 @@ const App: React.FC = () => {
           <p className="text-lg text-slate-400 mt-4">
             {t('appDescription')}
           </p>
+          <div className="mt-4 max-w-3xl mx-auto">
+            <label className="block text-sm text-slate-400 mb-1">API Base URL (예: https://your-vercel-app.vercel.app)</label>
+            <input
+              value={apiBase}
+              onChange={(e) => setApiBase(e.target.value)}
+              placeholder="https://your-vercel-app.vercel.app"
+              className="w-full p-2 rounded-md bg-slate-800 border border-slate-700 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <p className="text-xs text-slate-500 mt-1">변경 시 자동 저장됩니다. GitHub Pages 사용 시 필수로 설정하세요.</p>
+          </div>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
