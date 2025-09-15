@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface Body {
   character: { base64: string; mimeType: string };
@@ -6,32 +6,27 @@ interface Body {
   prompt: string;
 }
 
-export const config = {
-  runtime: 'edge',
-};
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    res.status(405).send('Method Not Allowed');
+    return;
   }
-
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return new Response('Missing GEMINI_API_KEY', { status: 500 });
+      res.status(500).send('Missing GEMINI_API_KEY');
+      return;
     }
-
-    const { character, clothing, prompt } = (await req.json()) as Body;
+    const { character, clothing, prompt } = req.body as Body;
     if (!character?.base64 || !clothing?.base64 || !prompt?.trim()) {
-      return new Response('Invalid input', { status: 400 });
+      res.status(400).send('Invalid input');
+      return;
     }
 
     const client = new GoogleGenerativeAI(apiKey);
-
-    // Note: Replace model name with an image generation capable Gemini model when available in your region.
     const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    // We will attempt to request an image result. If the model returns text, we surface NO_IMAGE_RETURNED upstream.
     const result = await model.generateContent({
       contents: [
         {
@@ -45,22 +40,20 @@ export default async function handler(req: Request): Promise<Response> {
       ],
     });
 
-    // Try to parse an inline image if present
     const candidates = (result as any)?.response?.candidates ?? [];
     for (const c of candidates) {
       const parts = c?.content?.parts ?? [];
       for (const p of parts) {
         if (p?.inlineData?.data && p?.inlineData?.mimeType?.startsWith('image/')) {
-          return Response.json({ imageBase64: p.inlineData.data, mimeType: p.inlineData.mimeType });
+          res.status(200).json({ imageBase64: p.inlineData.data, mimeType: p.inlineData.mimeType });
+          return;
         }
       }
     }
-
-    // Fallback: no image inlined
-    return new Response('NO_IMAGE_RETURNED', { status: 502 });
+    res.status(502).send('NO_IMAGE_RETURNED');
   } catch (err: any) {
     const message = typeof err?.message === 'string' ? err.message : 'Unknown error';
-    return new Response(message, { status: 500 });
+    res.status(500).send(message);
   }
 }
 
