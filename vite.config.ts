@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  // Set base path for GitHub Pages repo "dudu3"
-  const base = '/dudu3/'
+  // For Vercel deployment, use root path
+  const base = '/'
 
   return {
     plugins: [react()],

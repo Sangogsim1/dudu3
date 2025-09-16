@@ -11,9 +11,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": ["vite/client", "node"]
   },
-  "include": ["src", "api"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 
