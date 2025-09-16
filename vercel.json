@@ -1,11 +1,5 @@
 {
-  "functions": {
-    "api/**/*.{js,ts}": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
   "framework": "vite"
 }
-
